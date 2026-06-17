@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'; // 👈 Added useLocation
 import { authService } from '../services/authService';
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const location = useLocation(); // 👈 Hook into React Router navigation state history
   const [searchParams] = useSearchParams();
   
-  // Check if there's a redirection parameter (e.g., claiming a nomination link)
+  // 1. Check if there's a redirection parameter via query string (e.g., claiming a nomination link)
   const tokenRedirect = searchParams.get('token');
+
+  // 2. Check if they were kicked out of a protected layout page (like /vote) by ProtectedRoute
+  const fallbackRedirect = location.state?.from?.pathname;
 
   // Page view configuration state ('login' | 'register')
   const [mode, setMode] = useState('login');
@@ -54,11 +58,16 @@ export default function AuthPage() {
         });
       }
 
-      // Route management after successful authentication
+      // 🔀 Smart Route Management After Successful Authentication
       if (tokenRedirect) {
-        navigate(`/claim-reward?token=${tokenRedirect}`);
+        // If they have an email claim token context, keep pushing down that funnel
+        navigate(`/claim-reward?token=${tokenRedirect}`, { replace: true });
+      } else if (fallbackRedirect) {
+        // If Route Guard kicked them off a protected path (like /vote), send them straight back there!
+        navigate(fallbackRedirect, { replace: true });
       } else {
-        navigate('/dashboard'); // Fallback standard system dashboard
+        // Fallback standard system dashboard
+        navigate('/dashboard', { replace: true }); 
       }
     } catch (err) {
       // Catch validation messages returned from Laravel Form Request classes

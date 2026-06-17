@@ -1,15 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/Button';
-
+import { useNominationStore } from '../../store/useNominationStore';
+import { NominationModal } from '../../components/modals/NominationModal';
+ 
 export default function Navbar() {
   const location = useLocation();
-
+ const openModal = useNominationStore((state) => state.openModal);
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Rewards & Exploits', path: '/reward' },
-    { name: 'About Us', path: '#about' },
-    { name: 'Heritage Registry', path: '#heritage' }
+    { name: 'About Us', path: '/about' },
+    // { name: 'Heritage Registry', path: '#heritage' }
   ];
 
   return (
@@ -53,10 +55,14 @@ export default function Navbar() {
 
         {/* Premium Action CTA */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="hidden sm:flex border-zinc-200 hover:bg-zinc-50 text-zinc-700">
+          {/* <Button variant="outline" className="hidden sm:flex border-zinc-200 hover:bg-zinc-50 text-zinc-700">
             Verify Portal
-          </Button>
-          <Button variant="primary" className="bg-gradient-to-r from-amber-500 to-orange-600 shadow-sm">
+          </Button> */}
+          
+          <Button 
+          type="button"
+          onClick={openModal}
+          variant="primary" className="bg-gradient-to-r from-amber-500 to-orange-600 shadow-sm">
             Nominate Someone
           </Button>
         </div>

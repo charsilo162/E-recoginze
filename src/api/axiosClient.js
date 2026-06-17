@@ -12,7 +12,8 @@ const axiosClient = axios.create({
 // Request Interceptor: Automatically inject auth tokens if your client needs them later
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token');
+    // 🔑 ALIGNED: Changed from 'admin_token' to 'auth_token'
+    const token = localStorage.getItem('auth_token'); 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

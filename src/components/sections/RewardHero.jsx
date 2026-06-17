@@ -31,14 +31,14 @@ export const RewardHero = ({ title, subtitle }) => {
           {subtitle}
         </p>
 
-        <div className="w-full max-w-xl p-1.5 bg-white border border-zinc-200 shadow-md rounded-xl flex gap-2">
+        {/* <div className="w-full max-w-xl p-1.5 bg-white border border-zinc-200 shadow-md rounded-xl flex gap-2">
           <input 
             type="text" 
             placeholder="Enter Name..." 
             className="w-full bg-transparent px-4 py-2 text-zinc-800 placeholder-zinc-400 outline-none text-sm"
           />
           <Button variant="primary" className="py-2.5 px-6 text-xs font-bold">Search</Button>
-        </div>
+        </div> */}
       </div>
 
     </section>

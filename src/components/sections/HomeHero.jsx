@@ -3,7 +3,7 @@ import { Button } from '../ui/Button';
 import { useNominationStore } from '../../store/useNominationStore';
 import { NominationModal } from '../../components/modals/NominationModal';
 import heroBg from '../../assets/image/img1.jpg';
-export const HomeHero = ({ title, subtitle, stats = [] }) => {
+export const HomeHero = ({ title, subtitle, stats = [] }) => { 
   const openModal = useNominationStore((state) => state.openModal);
 
   return (
@@ -36,10 +36,10 @@ export const HomeHero = ({ title, subtitle, stats = [] }) => {
             placeholder="Enter Name..." 
             className="w-full bg-transparent px-4 py-3 text-zinc-800 placeholder-zinc-400 outline-none text-sm font-medium"
           /> */}
-<div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-  <button className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black px-8 py-4 rounded-xl text-base tracking-wide shadow-lg hover:scale-105 transition-all">
+<div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto shrink-0">
+  {/* <button className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black px-8 py-4 rounded-xl text-base tracking-wide shadow-lg hover:scale-105 transition-all">
     SEARCH
-  </button>
+  </button> */}
 
   <button
     type="button"

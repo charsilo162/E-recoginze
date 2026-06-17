@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Reward from './pages/Reward'; 
 import AuthPage from './pages/AuthPage';
 import ClaimRewardFlow from './pages/ClaimRewardFlow';
+import About from './pages/About';
+import { NominationModal } from './components/modals/NominationModal';
 
 function App() {
   return (
@@ -18,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/reward" element={<Reward />} /> 
+          <Route path="/about" element={<About />} />
           <Route path="/honoree/:id" element={<HonoreeDetail />} />
           {/* Authentication Gateway Page */}
         <Route path="/auth" element={<AuthPage />} />
@@ -25,6 +28,7 @@ function App() {
         {/* Claim Verification Dynamic Page */}
         <Route path="/claim-reward" element={<ClaimRewardFlow />} />
         </Routes>
+           <NominationModal />
       </main>
       
       {/* 3. Global Structural Footer */}
