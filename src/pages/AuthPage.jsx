@@ -67,7 +67,7 @@ export default function AuthPage() {
         navigate(fallbackRedirect, { replace: true });
       } else {
         // Fallback standard system dashboard
-        navigate('/dashboard', { replace: true }); 
+        navigate('/reward', { replace: true }); 
       }
     } catch (err) {
       // Catch validation messages returned from Laravel Form Request classes

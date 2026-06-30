@@ -1,18 +1,55 @@
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion'; // Kept your original animation support
+import { useNominationStore } from '../../store/useNominationStore'; // Adjust store path if needed
+import { authService } from '../../services/authService'; // Adjust this import path
 import { Button } from '../ui/Button';
-import { useNominationStore } from '../../store/useNominationStore';
 import { NominationModal } from '../../components/modals/NominationModal';
- 
+
 export default function Navbar() {
   const location = useLocation();
- const openModal = useNominationStore((state) => state.openModal);
+  const navigate = useNavigate();
+  const openModal = useNominationStore((state) => state.openModal);
+
+  // 1. Set up local state to track auth status and user role
+  const [authState, setAuthState] = useState({
+    isAuthenticated: authService.isAuthenticated(),
+    userRole: authService.getRole(),
+  });
+
+  // 2. Sync state whenever the URL changes
+  useEffect(() => {
+    setAuthState({
+      isAuthenticated: authService.isAuthenticated(),
+      userRole: authService.getRole(),
+    });
+  }, [location.pathname]);
+
+  // 3. Core structural base navigation links
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Rewards & Exploits', path: '/reward' },
     { name: 'About Us', path: '/about' },
-    // { name: 'Heritage Registry', path: '#heritage' }
   ];
+
+  // 4. Inject Dynamic Links based on Auth Status
+  if (authState.isAuthenticated) {
+    // Inject Dashboard right after 'Home'
+    navLinks.splice(1, 0, { name: 'Dashboard', path: '/reward' });
+
+    // Inject Admin specific options if the role matches
+    if (authState.userRole === 'admin') {
+      navLinks.push({ name: 'Admin Standings', path: '/admin/standings' });
+      navLinks.push({ name: 'Election Cycle', path: '/electioncycle' });
+    }
+  }
+
+  // Handle User Logging out cleanly
+  const handleLogout = () => {
+    authService.logout();
+    setAuthState({ isAuthenticated: false, userRole: null });
+    navigate('/auth');
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-zinc-200/80">
@@ -35,7 +72,7 @@ export default function Navbar() {
             return (
               <Link
                 key={link.name}
-                to={link.path.startsWith('#') ? '#' : link.path}
+                to={link.path}
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium tracking-wide transition-colors ${
                   isActive ? 'text-orange-600' : 'text-zinc-600 hover:text-zinc-900'
                 }`}
@@ -53,16 +90,31 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Premium Action CTA */}
+        {/* Premium Action CTA Area */}
         <div className="flex items-center gap-3">
-          {/* <Button variant="outline" className="hidden sm:flex border-zinc-200 hover:bg-zinc-50 text-zinc-700">
-            Verify Portal
-          </Button> */}
+          {/* Dynamic Login/Logout Button based on system state */}
+          {authState.isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/80 px-4 h-10 flex items-center justify-center rounded-xl transition-colors"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="text-sm font-medium text-zinc-700 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200/70 px-4 h-10 flex items-center justify-center rounded-xl transition-colors border border-zinc-200/50"
+            >
+              Login
+            </Link>
+          )}
           
           <Button 
-          type="button"
-          onClick={openModal}
-          variant="primary" className="bg-gradient-to-r from-amber-500 to-orange-600 shadow-sm">
+            type="button"
+            onClick={openModal}
+            variant="primary" 
+            className="bg-gradient-to-r from-amber-500 to-orange-600 shadow-sm h-10 rounded-xl"
+          >
             Nominate Someone
           </Button>
         </div>

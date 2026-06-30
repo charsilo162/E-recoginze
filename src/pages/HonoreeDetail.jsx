@@ -1,81 +1,164 @@
-import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BackgroundMesh } from '../components/ui/BackgroundMesh';
-import { MediaHub } from '../components/sections/MediaHub';
-import { Card } from '../components/ui/Card';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
+import { ballotService } from '../services/ballotService'; // 👈 Centralized Axios Service Layer Hook
 
 export default function HonoreeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [voting, setVoting] = useState(false);
 
-  // Mock profile data dictionary - realistically this will fetch from your backend via the ID parameter
-  const profile = {
-    name: "Aliko Dangote",
-    title: "President & Chief Executive, Dangote Group",
-    bio: "Recognized globally for unprecedented industrial scale outputs across architectural sectors, enterprise logistics management, and historic community empowerment. His work anchors sub-continental infrastructure development initiatives.",
-    image: "/images/dangote-large.jpg",
-    views: "5,345"
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const result = await ballotService.getHonoreeProfile(id);
+        if (result.status === 'success') {
+          setProfile(result.data);
+        } else {
+          navigate('/vote');
+        }
+      } catch (err) {
+        console.error("Failed to hydrate profile details:", err.message);
+        //navigate('/vote');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [id, navigate]);
+
+  const handleVoteDirectly = async () => {
+    if (profile?.status !== 'shortlisted') return; // Fail-safe check
+    
+    setVoting(true);
+    try {
+      const result = await ballotService.castVote(id);
+      if (result.status === 'success') {
+        alert("Vote securely added!");
+        setProfile(prev => ({ ...prev, votes_count: prev.votes_count + 1 }));
+      } else {
+        alert(result.message || "Could not complete vote.");
+      }
+    } catch (err) {
+      alert(err.message || "Transactional communication issue.");
+    } finally {
+      setVoting(false);
+    }
   };
 
-  const galleryImages = ["/images/g1.jpg", "/images/g2.jpg", "/images/g3.jpg"];
-  const customTrendingVideos = [{ thumbnail: "/images/v1.jpg", views: profile.views }];
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-24 space-y-6 animate-pulse">
+        <div className="h-64 bg-zinc-100 rounded-3xl" />
+        <div className="h-8 bg-zinc-200 rounded w-1/3" />
+        <div className="h-24 bg-zinc-100 rounded" />
+      </div>
+    );
+  }
+
+  // Determine configuration details based on active payload parameters
+  const isShortlisted = profile.status === 'shortlisted';
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-zinc-800 py-12">
-      <BackgroundMesh />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+    <div className="bg-zinc-50 min-h-screen py-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Layout Split Hero Profile Module */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center pt-8">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="md:col-span-1 aspect-[4/5] rounded-2xl overflow-hidden shadow-xl border border-white/80"
-          >
-            <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
-          </motion.div>
+        {/* Navigation Breadcrumb */}
+        <button 
+          onClick={() => navigate(-1)} 
+          className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-zinc-900 transition-colors mb-8 group"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          Return to Ballot View Registry
+        </button>
 
-          <div className="md:col-span-2 space-y-4">
-            <span className="text-xs uppercase font-extrabold tracking-widest text-orange-600 bg-orange-100 px-3 py-1 rounded-full">
-              Verified Dossier Profile
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black text-zinc-900 tracking-tight">{profile.name}</h1>
-            <p className="text-md font-bold text-zinc-500">{profile.title}</p>
-            <hr className="border-zinc-200" />
-            <p className="text-zinc-600 leading-relaxed text-sm md:text-base pt-2">{profile.bio}</p>
+        {/* Profile Card Workspace Frame */}
+        <div className="bg-white border border-zinc-200/80 rounded-3xl overflow-hidden shadow-sm grid grid-cols-1 md:grid-cols-12">
+          
+          {/* Media / Asset Avatar Block */}
+          <div className="md:col-span-5 bg-zinc-950 aspect-[4/5] md:aspect-auto relative min-h-[380px]">
+            <img 
+              src={profile.avatar_path ? `${profile.avatar_path}` : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600'} 
+              className="w-full h-full object-cover opacity-90"
+              alt={profile.nominate_name}
+            />
+            
+            {/* Dynamic Operational Workflow Tag Layout badges */}
+            <div className="absolute top-4 left-4">
+              {isShortlisted ? (
+                <span className="text-[10px] tracking-wider uppercase font-black px-2.5 py-1 bg-emerald-500 text-zinc-950 rounded-md shadow-sm">
+                  Shortlisted Contender
+                </span>
+              ) : (
+                <span className="text-[10px] tracking-wider uppercase font-black px-2.5 py-1 bg-amber-500 text-zinc-950 rounded-md shadow-sm">
+                  Pending Verification Approval
+                </span>
+              )}
+            </div>
           </div>
-        </section>
 
-        {/* Dynamic Image Carousel Row Wrapper */}
-        <section className="space-y-4">
-          <h3 className="text-lg font-bold text-zinc-900 tracking-tight">Media & Press Gallery</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {galleryImages.map((img, i) => (
-              <Card key={i} className="aspect-[16/10] border-zinc-200">
-                <img src={img} alt="" className="w-full h-full object-cover" />
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Media Hub Section Reused completely without duplicating list parameters */}
-        <MediaHub 
-          videos={customTrendingVideos}
-          blogs={[]} // Keeping it completely modular and dry
-        />
-
-        {/* Client Reviews Section Module */}
-        <section className="py-12 border-t border-zinc-200 text-center space-y-8">
-          <h3 className="text-xl font-black tracking-wider uppercase text-zinc-400">Clients Reviews</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="space-y-3 p-4">
-                <div className="w-12 h-12 bg-zinc-300 rounded-full mx-auto" />
-                <p className="text-xs text-zinc-500 italic">"An absolute paragon of industrial execution. A thoroughly well-deserved recognition placement."</p>
+          {/* Dossier Text Field Attributes */}
+          <div className="md:col-span-7 p-8 md:p-10 flex flex-col justify-between text-left">
+            <div className="space-y-6">
+              <div>
+                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">{profile.category_name}</span>
+                <h1 className="text-3xl font-black text-zinc-900 tracking-tight mt-1">{profile.nominate_name}</h1>
+                <p className="text-xs text-zinc-400 font-mono mt-1">Global ID: #{profile.id}-CYCLE{profile.election_cycle_id}</p>
               </div>
-            ))}
+
+              <hr className="border-zinc-100" />
+
+              <div className="space-y-2">
+                <h4 className="text-[11px] uppercase font-black tracking-wider text-zinc-400">Statement of Meritorious Impact</h4>
+                <p className="text-sm text-zinc-600 leading-relaxed font-normal">
+                  {profile.reason || "No written statement on file for this candidate cycle."}
+                </p>
+              </div>
+
+              <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase block">Current Standing</span>
+                  <span className="text-xl font-black text-zinc-900 mt-0.5 block">{profile.votes_count} Votes</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase block">Verification Check</span>
+                  {isShortlisted ? (
+                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/50 px-2 py-0.5 rounded-md inline-block mt-1">
+                      ✓ Vetted Core Pass
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-md inline-block mt-1">
+                      ⟳ Staging Queue Audit
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Direct Interactive Call To Action Section Block */}
+            <div className="pt-8 mt-8 border-t border-zinc-100">
+              {isShortlisted ? (
+                <Button
+                  variant="primary"
+                  disabled={voting}
+                  onClick={handleVoteDirectly}
+                  className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-200 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md shadow-emerald-500/10 flex items-center justify-center gap-2"
+                >
+                  {voting ? 'Submitting Ballot Stamp...' : 'Cast Official Vote For This Profile'}
+                </Button>
+              ) : (
+                <div className="p-4 text-center rounded-xl bg-zinc-50 border border-zinc-200/60">
+                  <p className="text-xs font-semibold text-zinc-500">
+                    🔒 Voting functionality is disabled until administrative curation verification reviews conclude.
+                  </p>
+                </div>
+              )}
+            </div>
+
           </div>
-        </section>
+        </div>
 
       </div>
     </div>

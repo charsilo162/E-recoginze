@@ -10,7 +10,7 @@ import heroBg2 from '../assets/image/img3.jpg';
 import { useWinnerStore } from '../store/useWinnerStore';
 import { SpotlightGrid } from '../components/ui/SpotlightGrid';
 import { useEffect } from 'react';
-
+import { RegistrySpotlightSection } from '../components/sections/RegistrySpotlightSection';
 
 export default function Home() {
 
@@ -59,12 +59,17 @@ export default function Home() {
       {/* <ActionBanner title="The Gen-Z Recognition Standard" /> */}
 
       {/* 4. Directory Highlight Grid Container */}
-      <SpotlightGrid 
+      {/* <SpotlightGrid 
               title="2026 Recognized Honorees"
               tag="Hall of Fame Spotlight"
               items={featuredWinners}
               columns={3}
-            />
+            /> */}
+    <RegistrySpotlightSection 
+            title="2026 Recognized Honorees"
+            tag="Hall of Fame Spotlight"
+            columns={4}
+          />
       {/* <NominationModal /> */}
     </div>
   );
